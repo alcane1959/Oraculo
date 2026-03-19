@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oráculo Supremo | A Enciclopédia do Sarcasmo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #060b1a; --gold: #d4af37; --text: #1a1a1a; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Montserrat', sans-serif; background: #fff; color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding-bottom: 50px; }
+        .header-section { width: 100%; background: var(--bg); padding: 40px 20px; text-align: center; border-bottom: 3px solid var(--gold); }
+        .titulo-master { font-family: 'Cinzel', serif; font-size: 1.8rem; background: linear-gradient(180deg, #fff 30%, #a1a1a1 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; }
+        .control-panel { margin-top: -30px; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 15px 45px rgba(0,0,0,0.15); width: 95%; max-width: 550px; display: flex; flex-direction: column; gap: 15px; border: 1px solid #eee; text-align: center; }
+        input { padding: 15px; border: 2px solid #f0f0f0; border-radius: 5px; text-align: center; font-size: 1.2rem; outline: none; }
+        .btn-gerar { padding: 18px; font-family: 'Cinzel', serif; font-weight: 700; text-transform: uppercase; cursor: pointer; transition: 0.3s; border: 2px solid var(--gold); background: var(--bg); color: var(--gold); }
+        .btn-gerar:hover { background: var(--gold); color: #000; }
+        .results-grid { width: 90%; max-width: 800px; margin: 25px 0; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+        .number-sphere { width: 55px; height: 55px; background: white; border: 2px solid var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--bg); box-shadow: 0 4px 10px rgba(0,0,0,0.1); animation: popIn 0.4s ease-out forwards; }
+        .preview-box { width: 95%; max-width: 550px; background: #f9f9f9; border: 1px dashed var(--gold); padding: 25px; border-radius: 8px; display: none; text-align: left; font-size: 0.95rem; white-space: pre-wrap; line-height: 1.6; }
+        @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        #toast { position: fixed; bottom: 20px; background: var(--bg); color: var(--gold); padding: 12px 25px; border-radius: 50px; display: none; border: 1px solid var(--gold); z-index: 100; }
+    </style>
+</head>
+<body>
+
+<header class="header-section">
+    <h1 class="titulo-master" id="nomeGuruHeader">O Oráculo Infinito</h1>
+    <p style="color: var(--gold); letter-spacing: 2px; font-size: 0.65rem; text-transform: uppercase;" id="visualDesc">Oceano de Ironia...</p>
+</header>
+
+<div class="control-panel">
+    <label style="font-size: 0.7rem; font-weight: 700; color: #999;">QUANTAS DEZENAS PARA O SEU DESTINO?</label>
+    <input type="number" id="qtd" placeholder="Ex: 6" min="1" max="100">
+    <button class="btn-gerar" onclick="executarSorteio()">Invocar 100 Milhões de Profecias</button>
+</div>
+
+<div class="results-grid" id="display"></div>
+
+<div class="preview-box" id="previewContainer">
+    <div id="previewText"></div>
+</div>
+
+<div id="toast">✨ Destino copiado! O azar agora é oficial.</div>
+
+<script>
+    let numerosAtuais = [];
+    let nomeGuruAtual = "";
+    let descVisual = "";
+
+    const vocab = {
+        base: ["Guru", "Mestre", "Mahatma", "Swami", "Rishi", "Baba", "Shri", "Lama", "Sanyasin", "Pandit", "Ermitão", "Venerável", "Asceta", "Doutor", "Xamã", "Profeta", "Pajé", "Monge", "Sábio", "Visionário", "Arhat", "Buda", "Bhante", "Yogi", "Brahmin", "Sadhu", "Ocultista", "Místico", "Avatar", "Oráculo", "Curandeiro", "Guia", "Pastor", "Iluminado", "Mago", "Bruxo", "Feiticeiro", "Alquimista", "Pontífice", "Abade", "Prior", "Iogue", "Czar", "Khan", "Sultão", "Xeique", "Raja", "Marajá", "Emir", "Califa", "Vizir", "Pai", "Irmão", "Velho", "Jovem", "Pobre", "Rico", "Santo", "Pecador", "Herege", "Apóstolo", "Discípulo", "Anacoreta", "Cenobita", "Santão", "Brahma", "Xiva", "Vixnu", "Crishná", "Rama", "Indra", "Agni", "Suria", "Varuna", "Vaio", "Iama", "Cubera", "Ganexa", "Cartiqueia", "Camadeva", "Hanuman", "Soma", "Briaspati", "Ushas", "Sarasvati", "Lakshmi", "Parvati", "Durga", "Kali", "Radha", "Sita", "Tara", "Maia", "Shakti", "Prakriti", "Atman", "Karma", "Darma", "Moksha"],
+        nome: ["Maharaji", "Vishnu", "Sanjay", "Rajesh", "Ganesh", "Brahma", "Yoga", "Chandra", "Indra", "Krishna", "Amithaba", "Siddharta", "Ananda", "Govinda", "Madhav", "Keshav", "Narayan", "Vasudev", "Vitor", "Ravi", "Kiran", "Arjun", "Aditya", "Akash", "Amit", "Anil", "Arun", "Ashok", "Bharat", "Deepak", "Dilip", "Dinesh", "Gopal", "Hari", "Harish", "Hemant", "Jagdish", "Jay", "Jitendra", "Kailash", "Kamal", "Kapil", "Kishore", "Kumar", "Laxman", "Mahendra", "Manish", "Manoj", "Mohan", "Mukesh", "Narendra", "Naresh", "Naveen", "Nitin", "Om", "Pankaj", "Pawan", "Pradeep", "Prakash", "Pramod", "Prashant", "Praveen", "Prem", "Rahul", "Raj", "Rajat", "Rajeev", "Rajendra", "Rakesh", "Ram", "Ramesh", "Ranbir", "Ranjeet", "Ratan", "Rishi", "Rohit", "Sachin", "Sandeep", "Sanjay", "Sanjeev", "Santosh", "Satish", "Shailendra", "Shakti", "Shankar", "Sharad", "Shashi", "Shiv", "Shyam", "Siddharth", "Subhash", "Sudhir", "Sujit", "Suneel", "Suresh", "Sushil", "Tarun", "Uday", "Umesh", "Varun", "Vijay", "Vikas", "Vikram", "Vimal", "Vinay", "Vinod", "Vipul", "Vivek", "Yash"],
+        sobrenome: ["Sarcasmananda", "Debochanda", "Surtananda", "Pobrenanda", "Boletananda", "Ironicananda", "SemPixNanda", "Lisunanda", "Vidinhaserena", "Betananda", "TaxaddNanda", "TigrinhoYoga", "SerasaGiri", "RasaPobre", "PixDevoto", "MaoVaca", "CaloteiroGiri", "SonecaYoga", "PreguiçaNanda", "FaturaRishi", "ChequeEspecial", "JurosCompostos", "DividendosZero", "TraderSurtado", "CoachPobre", "MindsetLixo", "GourmetNanda", "NutellaYoga", "RaizBaba", "SemSorteGiri", "ZicaNanda", "AzaradoShri", "PéFrioYoga", "UrubuRishi", "ZuretaNanda", "BirutaBaba", "TontoGiri", "LeléYoga", "DoidoShri", "MalucoBaba", "PiraNanda", "ChoraSanjay", "GritaVishnu", "CorreGanesh", "SentaBrahma", "DormeIndra", "BebeKrishna", "ComeRama", "PulaSuria", "CaiAgni", "SobeVaruna", "DesceVaio", "EntraIama", "SaiCubera", "RiGanexa", "ChoraTara", "VendeShakti", "CompraAtman", "TrocaKarma", "PerdeDarma", "AchaMoksha", "BuscaNirvana", "FogeSamsara", "ViveMaia", "SentePrakriti", "OlhaBuda", "EscutaDharma", "FalaSangha", "PensaZen", "SabeTao", "QuerIoga", "FazTantra", "UsaMantra", "CantaBhajan", "LêVeda", "EstudaUpanixade", "OuvePurana", "EscreveSutra", "ContaMala", "UsaTilaka", "VesteDhoti", "ComeSamosa", "BebeLassi", "GostaCurry", "AmaNaan", "QuerChai", "PedePaneer", "FazDhal", "UsaGhee", "TemAçafrão", "CheiraIncenso", "TocaSitar", "OuveTabla", "DançaKathak", "VêBollywood", "MoraDeli", "VaiMumbai", "AmaGoa", "QuerCalcutá"],
+
+        abertura: [
+            "parou de meditar no Everest só para rir da sua fatura do cartão.",
+            "consultou os búzios e eles pediram demissão ao ver sua sorte.",
+            "sentiu um distúrbio na força quando você abriu o aplicativo do banco.",
+            "viu na bola de cristal que você vai herdar um terreno (no Minecraft).",
+            "estava em silêncio absoluto até ver seu extrato bancário e soltar um 'vixe'.",
+            "decifrou as runas e descobriu que seu nome é sinônimo de 'sem limite'.",
+            "conversou com os astros e eles disseram que você é um caso perdido.",
+            "usou o Wi-Fi cósmico para baixar o histórico do seu karma e veio com vírus.",
+            "sentiu o cheiro do seu desespero financeiro a dez mil quilômetros de distância.",
+            "analisou sua aura e ela tem a cor de um boleto vencido há três meses.",
+            "estava levitando, mas a gravidade da sua dívida o puxou de volta ao chão.",
+            "recebeu um sinal de fumaça do além avisando que sua sorte está presa em Curitiba.",
+            "viu no tarot que você tem um encontro marcado com o gerente do banco.",
+            "contou as estrelas e elas riram da sua última tentativa de investir em NFT.",
+            "sonhou que você ganhava na loteria, mas acordou com o despertador do trabalho.",
+            "olhou para o fundo da xícara de chá e viu apenas a marca da gordura do pão.",
+            "sentiu uma energia negativa vindo da sua carteira, parece um buraco negro.",
+            "está em transe desde que viu você gastando 50 reais em café gourmet.",
+            "parou de olhar para o próprio umbigo para notar que seu saldo é piada pronta.",
+            "usou o GPS espiritual e ele disse que você está perdido no vale das dívidas.",
+            "viu sua vida passar diante dos olhos e achou o roteiro meio fraco.",
+            "está bocejando enquanto lê o registro akáshico da sua vida medíocre.",
+            "sentiu um arrepio na espinha quando você cogitou fazer um novo empréstimo.",
+            "olhou para as nuvens e elas formaram o símbolo do 'imposto de renda'.",
+            "recebeu uma psicografia dizendo que seu anjo da guarda pediu férias.",
+            "viu que seu chakra coronário está sintonizado na rádio 'sofrência'.",
+            "está rindo dos seus planos de ficar rico vendendo bolo de pote.",
+            "sentiu que sua vibração está na frequência de um rádio de pilha velho.",
+            "olhou para o sol e ele piscou para você, mas foi um sinal de 'corre'.",
+            "usou o pêndulo sagrado e ele só aponta para a seção de promoções.",
+            "viu que sua linha da vida é longa, mas a linha do crédito é curtíssima.",
+            "está limpando o terceiro olho depois de ver suas fotos de 2012.",
+            "sentiu que seu karma está mais pesado que um elefante com obesidade.",
+            "olhou para a lua e ela te ignorou solenemente por falta de mérito.",
+            "viu que seu destino está escrito em guardanapo usado de boteco.",
+            "sentiu que sua energia está sendo sugada por boletos que nem venceram.",
+            "olhou para as palmas das suas mãos e viu sinais de 'precisa trabalhar'.",
+            "recebeu uma mensagem em sânscrito dizendo que você é um 'zero à esquerda'.",
+            "está tentando alinhar seus chakras, mas o da carteira está espanado.",
+            "viu que sua sorte fugiu de casa e deixou um bilhete de adeus.",
+            "sentiu que seu mapa astral foi desenhado por uma criança com raiva.",
+            "olhou para o horizontee viu a tempestade da sua próxima fatura.",
+            "viu que sua estrela guia está sem bateria e sem carregador.",
+            "sentiu que sua alma está em modo de economia de energia severa.",
+            "está rezando por você, mas avisou que o caso é de cirurgia espiritual.",
+            "viu que seu nome no plano astral está com restrição no SPC cósmico.",
+            "olhou para o espelho da alma e viu que você precisa de um banho de sal grosso.",
+            "sentiu que sua sorte é como feriado no domingo: não serve para nada.",
+            "está tentando psicografar sua sorte, mas a caneta estourou na mão.",
+            "viu que sua jornada é linda, mas o roteirista é o mesmo do Titanic.",
+            "sentiu que sua aura está mais opaca que vidro de ônibus em dia de chuva.",
+            "olhou para o céu e viu um sinal, mas era apenas um avião de carga.",
+            "está em choque com a audácia do seu anjo da guarda em pedir aumento.",
+            "viu que seu destino está mais incerto que clima de São Paulo.",
+            "sentiu que sua energia vital é movida a café requentado e ódio.",
+            "olhou para o mar e ele devolveu sua oferenda por falta de interesse.",
+            "está tentando ler sua mente, mas encontrou apenas eco e poeira.",
+            "viu que seu karma está mais enrolado que fone de ouvido no bolso.",
+            "sentiu que sua sorte é igual a enterro: só aparece uma vez e é triste.",
+            "olhou para o infinito e o infinito fingiu que não te viu passar.",
+            "está analisando seu mapa numerológico e o resultado foi '404 not found'.",
+            "viu que sua vida é um livro aberto, mas as páginas estão em branco.",
+            "sentiu que sua vibração está mais baixa que a grama do vizinho.",
+            "olhou para o zodíaco e todos os signos votaram para você sair.",
+            "está tentando sintonizar sua fortuna, mas só pega estática.",
+            "viu que seu anjo da guarda está usando o FGTS para fugir de você.",
+            "sentiu que sua sorte é como Wi-Fi público: cai toda hora e é lenta.",
+            "olhou para as cinzas do incenso e elas formaram um 'não' gigante.",
+            "está rindo da sua cara porque você ainda acredita em horóscopo de jornal.",
+            "viu que sua jornada espiritual é um círculo vicioso de erros.",
+            "sentiu que seu karma está em liquidação, mas ninguém quer comprar.",
+            "olhou para a natureza e ela pediu para você parar de respirar o ar dela.",
+            "está tentando prever seu futuro, mas a bola de cristal deu erro crítico.",
+            "viu que sua sorte é igual a dinheiro de banco imobiliário.",
+            "sentiu que sua aura cheira a desespero e miojo de galinha caipira.",
+            "olhou para o passado e sentiu vergonha alheia de você mesmo.",
+            "está tentando equilibrar seus pontos de energia com fita crepe.",
+            "viu que seu destino foi escrito por um estagiário com sono.",
+            "sentiu que sua sorte é como o Papai Noel: todo mundo fala, mas ninguém vê.",
+            "olhou para o universo e ele te deu um 'visto' e não respondeu.",
+            "está analisando seu signo e descobriu que você é de 'Urano em Crise'.",
+            "viu que seu karma está mais sujo que chão de rodoviária.",
+            "sentiu que sua vibração está na frequência de um despertador às 5h.",
+            "olhou para o tarô e a carta da 'Morte' pediu para sair do jogo.",
+            "está tentando te ajudar, mas o universo colocou você na lista negra.",
+            "viu que sua sorte é igual a feriado que cai no sábado.",
+            "sentiu que sua alma está precisando de um reboot urgente.",
+            "olhou para o futuro e viu você tentando pagar um boleto com outro.",
+            "está rindo da sua 'lei da atração' que só atrai cobrança e chuva.",
+            "viu que sua estrela brilha, mas é um brilho de lâmpada queimando.",
+            "sentiu que seu karma é hereditário e ninguém na família presta.",
+            "olhou para o mantra e ele se recusou a ser pronunciado por você.",
+            "está tentando alinhar sua vida, mas ela está mais torta que a torre de Pisa.",
+            "viu que sua sorte é como um unicórnio: linda, mas não existe.",
+            "sentiu que sua aura está sendo usada para atrair mosquito e azar.",
+            "olhou para o destino e ele deu risada da sua cara de esperança.",
+            "está tentando ler suas mãos, mas elas só dizem 'lave a louça'.",
+            "viu que seu futuro é brilhante, mas você esqueceu os óculos de sol.",
+            "sentiu que sua vibração é tão ruim que as plantas da casa morreram.",
+            "olhou para o nirvana e ele te bloqueou em todas as redes sociais.",
+            "está analisando sua vida e concluiu que o melhor é recomeçar do zero."
+        ],
+        problema: [
+            "O universo está em greve de milagres para quem passa o dia vendo dancinha.",
+            "Sua energia vital está drenada por grupos de WhatsApp e promessas de dieta.",
+            "Os astros tentaram ajudar, mas você continuou naquele ex tóxico.",
+            "Sua constelação regente colapsou após ver você gastando em skin de joguinho.",
+            "O sinal de riqueza caiu porque você não pagou a internet.",
+            "Existe um bloqueio no seu chakra causado pelo parcelamento em 12x.",
+            "Sua sorte está presa em um engarrafamento cósmico na altura de Saturno.",
+            "O panteão decidiu que seu karma só limpa após você lavar a louça da pia.",
+            "Sua aura de prosperidade foi trocada por uma de 'pelo amor de Deus'.",
+            "A abundância bateu na porta, mas você estava de fone ouvindo podcast.",
+            "Seu karma está sofrendo taxação de 92% na alfandega do além.",
+            "A lei da atração falhou porque você só atrai gente que não presta.",
+            "Sua vibração está tão baixa que você está atraindo até encosto de baixo clero.",
+            "O destino te enviou um sinal, mas você achou que era notificação do IFood.",
+            "Sua sorte está de licença maternidade e o filho não é seu.",
+            "O universo desistiu de você após aquela sua postagem de 'gratidão' falsa.",
+            "Seu mapa astral tem um buraco negro onde deveria estar a fortuna.",
+            "A abundância te ignora porque você não arruma nem a própria cama.",
+            "Seu anjo da guarda está fazendo terapia por causa das suas escolhas.",
+            "O cosmos está te punindo por você ter desistido da academia na primeira semana.",
+            "Sua sorte é como sinal de celular em túnel: some quando você mais precisa.",
+            "O destino te deu limões, mas você conseguiu deixar azedar até a água.",
+            "Seu karma está mais pesado que a consciência de um político em eleição.",
+            "O universo tentou te dar um empurrão, mas você caiu de cara no chão.",
+            "Sua estrela guia foi vendida no leilão de bens penhorados do além.",
+            "A prosperidade fugiu de você como se você fosse um ex carente.",
+            "Seu chakra da riqueza está entupido de boletos de compras por impulso.",
+            "O destino escreveu seu nome na lista negra dos herdeiros.",
+            "Sua sorte é igual a Wi-Fi de rodoviária: existe, mas não funciona.",
+            "O universo está te mandando sinais, mas você é analfabeto cósmico.",
+            "Seu anjo da guarda está tentando pedir demissão por justa causa.",
+            "Sua aura está tão cinza que o céu parece azul perto de você.",
+            "O karma te pegou na curva e você não estava de cinto de segurança.",
+            "A abundância passou por você e fingiu que não te conhecia.",
+            "Seu destino está mais incerto que resultado de exame de DNA no Ratinho.",
+            "Sua sorte é como o Mundial do Palmeiras: muita gente fala, mas ninguém vê.",
+            "O universo está rindo da sua tentativa de 'manifestar' um Pix.",
+            "Seu mapa astral diz que você nasceu para ser figurante na vida dos outros.",
+            "A prosperidade está em outra dimensão e o portal está com senha.",
+            "Sua vibração está na frequência de uma geladeira velha fazendo barulho.",
+            "O destino te deu um limão e você fez uma limonada, mas esqueceu o açúcar.",
+            "Seu karma está mais enrolado que novela mexicana em capítulo final.",
+            "A sorte te deu um 'match', mas depois te deu um 'unmatch' logo em seguida.",
+            "O universo te deu as cartas, mas você está jogando Uno em mesa de Poker.",
+            "Sua estrela brilha menos que lanterna de pilha fraca no escuro.",
+            "O anjo da guarda está de home office e o Wi-Fi dele caiu.",
+            "Sua aura está atraindo apenas pernilongo e cobrança de banco.",
+            "O destino te mandou um cavalo selado, mas você tem medo de altura.",
+            "Sua sorte é igual a feriado no domingo: uma decepção esperada.",
+            "O universo está tentando te ajudar, mas você dificulta muito as coisas.",
+            "Seu chakra da alegria foi substituído por um sensor de boletos.",
+            "A abundância está fazendo detox de você por tempo indeterminado.",
+            "Seu karma está mais sujo que tela de celular de criança.",
+            "A prosperidade tentou entrar, mas seu mindset é de porta blindada.",
+            "O destino te deu um sinal, mas você estava olhando o feed do Instagram.",
+            "Sua sorte é como dinheiro de herança: só existe na imaginação.",
+            "O universo está te dando um gelo porque você não aprendeu a lição.",
+            "Seu anjo da guarda está lendo o anúncio de 'vaga para outro protegido'.",
+            "Sua aura está com mau contato e piscando em vermelho.",
+            "O karma te deu um susto e você quase deixou cair a dignidade.",
+            "A abundância fugiu com seu melhor amigo e não deixou recado.",
+            "Seu destino está mais bagunçado que gaveta de meias sem par.",
+            "Sua sorte é igual a promoção de loja: tudo pela metade do dobro.",
+            "O universo te deu a chave, mas você conseguiu quebrar a fechadura.",
+            "Seu chakra da coragem está precisando de umas gotas de óleo de peroba.",
+            "A prosperidade te deu um vácuo de três encarnações seguidas.",
+            "O destino te mandou luz, mas você preferiu continuar nas trevas.",
+            "Sua estrela guia foi engolida por um buraco negro de preguiça.",
+            "O anjo da guarda está de férias e deixou um estagiário no lugar.",
+            "Sua aura está atraindo apenas boletos e pessoas com energia de obsessor.",
+            "O karma te deu um tapa e você ainda pediu desculpas.",
+            "A abundância está com medo de você e pediu uma medida protetiva.",
+            "Seu destino está mais travado que Windows 95 tentando rodar 4K.",
+            "Sua sorte é como a gratidão: é bonitinha, mas não paga as contas.",
+            "O universo te deu a mão e você quis o braço, agora ficou sem nada.",
+            "Seu chakra da paz foi trocado por um de ansiedade generalizada.",
+            "A prosperidade te deu block em todas as esferas existenciais.",
+            "O destino te mandou um sinal de fumaça, mas você achou que era churrasco.",
+            "Sua sorte é igual a Wi-Fi de hotel: só funciona perto da recepção.",
+            "O universo está cansado de te dar chances e você jogar no lixo.",
+            "Seu anjo da guarda está tentando vender sua alma no OLX por 10 reais.",
+            "Sua aura está mais desbotada que camiseta de político após eleição.",
+            "O karma te pegou no pulo e você nem tinha começado a correr.",
+            "A abundância está em reunião e não tem previsão de retorno.",
+            "Seu destino está mais perdido que cego em tiroteio de emoji.",
+            "Sua sorte é como a dieta: começa na segunda e termina na terça.",
+            "O universo te deu as coordenadas, mas você está segurando o mapa de ponta-cabeça.",
+            "Seu chakra da sabedoria está em reforma permanente e sem verba.",
+            "A prosperidade te deu um 'oi sumido' e depois desapareceu de novo.",
+            "O destino te deu um empurrãozinho e você rolou a escada inteira.",
+            "Sua estrela guia foi trocada por um sinal de 'pare' intermitente.",
+            "O anjo da guarda está fingindo que não te conhece no rolê espiritual.",
+            "Sua aura está atraindo apenas spam e golpe de WhatsApp.",
+            "O karma te deu um ultimato e você respondeu com figurinha.",
+            "A abundância está fazendo greve de fome até você mudar de atitude.",
+            "Seu destino está mais enrolado que cabo de carregador de iPhone.",
+            "Sua sorte é igual a bônus de operadora: cheio de regras e expira logo.",
+            "O universo te deu um insight, mas você achou que era gases.",
+            "Seu chakra do sucesso foi penhorado para pagar dívidas de vidas passadas.",
+            "A prosperidade te mandou flores, mas você esqueceu de regar e elas morreram."
+        ],
+        conselho: [
+            "Jogue estes números, mas se ganhar, não conte para ninguém. Se perder, a culpa é do seu mindset.",
+            "Milagres acontecem, mas geralmente para quem não deve para o agiota.",
+            "Use estas dezenas, mas mantenha o currículo atualizado no LinkedIn.",
+            "Se a riqueza vier, mude de país. Se não vier, mude de assunto.",
+            "Prosperidade é estado de espírito, mas saldo na conta ajuda a meditar.",
+            "Vá com fé, mas se o resultado for ruim, o Mestre nega envolvimento.",
+            "O sucesso te espera, mas sua cara de desespero o assusta.",
+            "Não espere nada do amanhã, assim uma moeda no chão vira festa.",
+            "O Guru abençoa a aposta, mas não aceita processo no Procon espiritual.",
+            "Que o destino tenha piedade, porque os astros já desistiram de você.",
+            "Se ganhar, mude o nome, o rosto e o CPF para não dividir com ninguém.",
+            "O Guru sugere que você use o prêmio para pagar a terapia, você precisa.",
+            "Tente a sorte, mas lembre-se que o universo prefere quem trabalha duro.",
+            "Acredite no impossível, mas continue pagando o plano de saúde em dia.",
+            "Se a fortuna sorrir para você, não esqueça de quem te deu as dezenas.",
+            "O mestre avisa: o dinheiro não traz felicidade, mas compra um iate.",
+            "Siga seu coração, mas não deixe ele decidir o que fazer com o prêmio.",
+            "A sorte é um beijo do destino, mas no seu caso parece um tapa.",
+            "Se o prêmio não vier, aceite que seu destino é brilhar no trabalho escravo.",
+            "O universo é vasto, mas sua conta bancária é bem compacta, resolva isso.",
+            "Aposte com moderação, ou pelo menos com o dinheiro que não é do aluguel.",
+            "O Guru diz: a paciência é uma virtude, mas um Pix na conta é muito melhor.",
+            "Se ganhar na loteria, não compre um carro, compre uma ilha e se isole.",
+            "Confie nos números, mas não confie em quem te pede dinheiro emprestado.",
+            "O mestre afirma: o azar é apenas a sorte tirando um cochilo eterno.",
+            "Tente a sorte hoje, porque amanhã seu karma pode cobrar juros altos.",
+            "Se o sucesso vier, finja que sempre foi rico e despreze os pobres.",
+            "O universo quer te ver bem, mas não melhor que ele, fique esperto.",
+            "Acredite nos seus sonhos, desde que seus sonhos não envolvam pirâmides.",
+            "Se ganhar, doe uma parte para o Guru (ou para uma instituição, tanto faz).",
+            "O mestre aconselha: mude de vida antes que a vida mude você à força.",
+            "Use estes números com sabedoria, ou apenas use e veja no que dá.",
+            "A sorte é cega, então tente fazer bastante barulho para ela te notar.",
+            "Se a riqueza bater, abra a porta rápido antes que ela mude de ideia.",
+            "O Guru diz: a vida é curta, mas a lista de dívidas é interminável.",
+            "Aposte tudo, ou não aposte nada, o universo não liga para a sua cautela.",
+            "Se ganhar, compre um senso de humor novo para aguentar os parentes.",
+            "O mestre avisa: a esperança é a última que morre, mas ela morre sim.",
+            "Confie na intuição, mas confira o resultado do sorteio duas vezes.",
+            "Se ficar rico, esqueça que este site existe e vá viver sua vida de luxo.",
+            "O mestre diz: o silêncio é ouro, mas o ouro também é muito bom.",
+            "Aposte nos números, mas não aposte a dignidade que você ainda tem.",
+            "Se a fortuna vier, não conte para o seu cônjuge de imediato.",
+            "O Guru aconselha: pare de pedir sinais e comece a pedir dinheiro.",
+            "Se ganhar, invista em cripto para perder tudo de novo e voltar a falar comigo.",
+            "A sorte favorece os audazes, mas os audazes geralmente acabam falidos.",
+            "O mestre afirma: o destino é um roteirista bêbado, tente suborná-lo.",
+            "Se ganhar, compre uma casa bem longe de onde você mora agora.",
+            "Confie na sorte, mas não deixe de conferir se a porta está trancada.",
+            "O Guru diz: a felicidade está nas pequenas coisas, tipo notas de 100.",
+            "Se ganhar na loteria, apague suas redes sociais e desapareça no mundo.",
+            "O mestre avisa: o karma não perdoa, mas o Pix agiliza o perdão.",
+            "Aposte agora, porque o alinhamento planetário não vai durar muito.",
+            "Se a riqueza vier, mude de estilo, de amigos e de vocabulário.",
+            "O Guru aconselha: viva cada dia como se fosse o último (com o seu dinheiro).",
+            "Se ganhar, compre uma estátua do Guru em tamanho real e banhada a ouro.",
+            "A sorte é uma dama difícil, tente conquistá-la com estas dezenas.",
+            "O mestre afirma: o azar é o tempero da vida, mas você exagerou no sal.",
+            "Tente a sorte, mas não conte com o ovo antes da galinha nascer.",
+            "Se o sucesso vier, ignore as mensagens de 'parabéns' dos interesseiros.",
+            "O Guru diz: a alma é eterna, mas o prazo do boleto é bem real.",
+            "Se ganhar, não seja humilde, a humildade não combina com Ferrari.",
+            "Aposte com o coração, mas use o cérebro para conferir os números.",
+            "O mestre avisa: a vida dá voltas, mas às vezes ela só te deixa tonto.",
+            "Confie no amanhã, mas guarde um troco para o pão de hoje.",
+            "Se ganhar, mude de número de telefone antes de sair o resultado oficial.",
+            "O Guru aconselha: pare de reclamar e comece a jogar com mais fé.",
+            "Se a fortuna vier, não mude seu caráter, mude apenas de endereço.",
+            "A sorte é como o vento, às vezes sobra a favor, às vezes derruba o telhado.",
+            "O mestre afirma: a riqueza é relativa, mas a pobreza é absoluta.",
+            "Tente a sorte hoje, porque o amanhã é apenas uma promessa vazia.",
+            "Se ganhar na loteria, não compre um curso de como ficar rico.",
+            "O Guru diz: o segredo do sucesso é não contar seus planos para ninguém.",
+            "Se a riqueza bater, não pergunte quem é, apenas abra e deixe entrar.",
+            "Aposte nestas dezenas e reze para que o universo esteja de bom humor.",
+            "O mestre avisa: a gratidão é linda, mas não paga a fatura do Nubank.",
+            "Confie no destino, mas tenha sempre um plano B (e um C, D e E).",
+            "Se ganhar, compre um jato particular e fuja da sua realidade atual.",
+            "O Guru aconselha: pare de buscar sentido na vida e busque saldo na conta.",
+            "Se a fortuna vier, não tente ser um 'filantropo', seja apenas um 'rico'.",
+            "A sorte é um flash, tente sair bem na foto com estes números.",
+            "O mestre afirma: o azar é persistente, mas você é mais teimoso ainda.",
+            "Tente a sorte, mas se perder, não venha chorar no meu chat.",
+            "Se o sucesso vier, dê um aumento para o seu anjo da guarda, ele merece.",
+            "O Guru diz: o tempo é dinheiro, e você está desperdiçando os dois agora.",
+            "Se ganhar, compre uma floresta e vá morar com os macacos, é melhor.",
+            "Aposte com confiança, mesmo que sua conta diga o contrário.",
+            "O mestre avisa: o caminho da iluminação é caro, comece a economizar.",
+            "Confie na providência divina, mas ajude ela jogando estes números.",
+            "Se ganhar na loteria, finja que sempre foi contra o capitalismo.",
+            "O Guru aconselha: pare de ler conselhos e vá logo fazer sua aposta.",
+            "Se a riqueza vier, mude de planeta se for possível, aqui está ruim.",
+            "A sorte é uma loteria (literalmente), então boa sorte com isso.",
+            "O mestre afirma: o futuro é pica, mas o presente é um desafio.",
+            "Tente a sorte, mas saiba que o universo não te deve absolutamente nada.",
+            "Se ganhar, não gaste tudo em festas, guarde um pouco para as multas.",
+            "O Guru diz: o amor é lindo, mas o prêmio acumulado é de chorar.",
+            "Se a fortuna vier, não seja mesquinho, mas também não seja otário.",
+            "Aposte nestas dezenas como se sua vida dependesse disso (e talvez dependa).",
+            "O mestre avisa: a jornada de mil léguas começa com um bilhete premiado.",
+            "Confie em mim, eu sou um algoritmo, eu nunca erro (exceto quando erro)."
+        ],
+        horoscopo: [
+            "♈ Áries: Sua paciência está mais curta que coice de porco e sua delicadeza é comparável a um trator sem freio descendo a ladeira. Tente não morder ninguém, ou pelo menos vacine-se contra a própria raiva antes de sair de casa.",
+            "♉ Touro: O universo viu você olhando o cardápio em vez de trabalhar. A fome não é um hobby, é apenas sua desculpa favorita para evitar qualquer esforço físico que não envolva mastigação. O sedentarismo agradece.",
+            "♊ Gêmeos: Duas personalidades morando no mesmo corpo e nenhuma delas tem a decência de querer pagar as contas ou tomar uma decisão útil. Decida-se se você é o gênio incompreendido ou apenas o fofoqueiro do bairro.",
+            "♋ Câncer: Chorar no banho para economizar tempo não conta como hidroginástica. Saia dessa concha emocional antes que ela vire um condomínio fechado para traumas de 1995 que ninguém mais lembra.",
+            "♌ Leão: O sol brilha para todos, mas você jurou que ele é seu refletor particular de LED 4K. Menos brilho e mais realidade: o único tapete vermelho na sua vida hoje é o capacho da entrada que precisa ser sacudido.",
+            "♍ Virgem: Organizar o caos alheio com planilhas coloridas não limpa o seu karma acumulado. Melhore esse seu hábito de achar defeito até em milagre, ou acabará corrigindo a gramática da sua própria sentença de azar.",
+            "♎ Libra: Em cima do muro de novo? Cuidado para não cair e passar vergonha, pois o equilíbrio que você ostenta é apenas medo crônico de desagradar gente que nem gosta de você. Escolha um lado ou o destino escolherá o pior.",
+            "♏ Escorpião: O veneno está escorrendo tanto que você está quase derretendo o próprio chão. Guarde um pouco dessa intensidade de vilão de novela para a próxima encarnação, aqui no mundo real a gente só quer que você relaxe o ferrão.",
+            "♐ Sagitário: Fugir dos problemas correndo para o mato não é maratona nem evolução espiritual. O boleto corre mais rápido que sua vontade de ser livre, e ele sabe exatamente onde você armou sua rede de 'paz'.",
+            "♑ Capricórnio: Sua ambição é linda de ver no LinkedIn, mas sua vida social está em coma profundo e pedindo desligamento dos aparelhos. Dinheiro não abraça ninguém à noite, a menos que você durma em cima de moedas.",
+            "♒ Aquário: Ser diferentão e 'fora da caixa' é legal até você precisar de um favor de uma pessoa normal e perceber que ninguém entende sua linguagem de alienígena incompreendido. O mundo não é um festival de arte alternativa.",
+            "♓ Peixes: Nadando contra a corrente em um oceano de ilusões? Cuidado para não virar sushi de ansiedade enquanto espera um sinal místico que, na verdade, é só o seu estômago roncando por falta de pé no chão.",
+            "♈ Áries: Hoje é um ótimo dia para praticar o silêncio absoluto. O mundo agradece o descanso sonoro e as pessoas ao seu redor correm menos risco de serem atingidas por uma patada gratuita vinda do nada.",
+            "♉ Touro: Sua teimosia vai te levar longe hoje, provavelmente para o isolamento total onde ninguém terá que ouvir você repetindo a mesma opinião errada pela milésima vez. O teimoso é o último que percebe que está sozinho.",
+            "♊ Gêmeos: Pare de falar sozinho no espelho, nem o seu reflexo está aguentando mais esse looping de ideias sem sentido. Se suas duas faces entrassem em um acordo, você talvez conseguisse terminar algo que começou.",
+            "♋ Câncer: O drama de hoje é apenas o meme de amanhã que ninguém vai curtir. Supere esse apego emocional por problemas que você mesmo criou só para ter o prazer de se sentir uma vítima injustiçada pelo cosmos.",
+            "♌ Leão: Se brilho fosse moeda corrente, você ainda estaria devendo para o banco astral. Sua majestade esqueceu que, para mandar no reino, primeiro precisa conseguir lavar a própria louça sem exigir aplausos.",
+            "♍ Virgem: Sua mania de perfeição é apenas uma forma sofisticada de falta de ter o que fazer. Se gastasse metade do tempo que usa criticando o mundo para arrumar sua própria vida, já estaria em Marte.",
+            "♎ Libra: Escolher entre o erro óbvio e o equívoco desastroso não é evolução espiritual, é apenas você sendo Libra. O muro onde você mora está ficando desconfortável, aceite que a vida exige decisões de verdade.",
+            "♏ Escorpião: A vingança é um prato que se come frio, mas você já congelou o freezer inteiro e esqueceu de viver. Solte esse rancor de estimação antes que ele comece a cobrar aluguel na sua mente já perturbada.",
+            "♐ Sagitário: Viajar para dentro de si mesmo pode ser um esporte radical e perigoso, você corre o risco de se perder na bagunça e descobrir que seu 'eu interior' também quer fugir de você sem deixar endereço.",
+            "♑ Capricórnio: Sorrir uma vez por década não vai quebrar sua mandíbula de gelo. O sucesso é ótimo, mas ter uma expressão facial que não pareça um contrato de hipoteca também ajuda na convivência humana.",
+            "♒ Aquário: Sua originalidade forçada cheira a falta de banho de realidade. Ser o diferentão da turma só funciona se você tiver algo a dizer além de teorias conspiratórias sobre o porquê de ninguém te entender.",
+            "♓ Peixes: O mundo espiritual mandou avisar que você está devendo por lá também. Não adianta acender vela e pedir milagre se você continua flutuando em um mar de desculpas e esquecendo de pagar o que deve na terra.",
+            "♈ Áries: Explosão de raiva prevista para as 14h com chances de danos colaterais permanentes. Avise os sobreviventes para buscarem abrigo, pois seu autocontrole foi tirar férias em outro sistema solar.",
+            "♉ Touro: Comer seus sentimentos só vai te dar uma azia épica e um sono interminável, não a paz interior que você finge buscar. O autoconhecimento não é encontrado no fundo de um pote de sorvete de 2 litros.",
+            "♊ Gêmeos: Suas mil versões estão todas erradas e em conflito hoje. Tente focar em apenas uma mentira por vez para não se perder na própria rede de contradições que você chama de 'personalidade complexa'.",
+            "♋ Câncer: Sensibilidade nota dez, senso prático nota zero absoluto. Se o mundo fosse feito de algodão doce e abraços, você seria o rei, mas como ele é feito de boletos e realidade, você é apenas um alvo fácil.",
+            "♌ Leão: O espelho pediu férias por tempo indeterminado depois de tanta auto-admiração forçada. Sua autoestima é tão inflada que corre o risco de estourar e levar todo o bairro junto na explosão de ego.",
+            "♍ Virgem: Criticar os outros não faz de você um gênio incompreendido pela sociedade, faz apenas de você uma pessoa chata com muito tempo livre. Tente policiar sua própria vida antes de julgar o mundo.",
+            "♎ Libra: O equilíbrio que você tanto busca está escondido em algum lugar que exige coragem, por isso você nunca o encontra. Pare de pesar os dois lados e perceba que ambos estão igualmente errados.",
+            "♏ Escorpião: Seus segredos são tão sombrios e dramáticos que até o próprio escuro tem medo de você. Menos mistério de filme B e mais transparência, ninguém tem paciência para decifrar seus enigmas tóxicos.",
+            "♐ Sagitário: Otimismo exagerado é apenas desespero fantasiado com glitter e frases motivacionais baratas. Cair de cara no chão dói igual, não importa se você estava rindo ou fazendo uma trilha espiritual.",
+            "♑ Capricórnio: Trabalho duro acumula cansaço, olheiras e solidão, não necessariamente a fortuna que você prometeu a si mesmo. O topo da montanha está cheio de neve e vazio de gente que te aguenta.",
+            "♒ Aquário: Suas ideias revolucionárias são, na maioria das vezes, apenas delírios causados por falta de sono e excesso de vontade de ser diferente. O mundo não precisa de mais um visionário sem plano de ação.",
+            "♓ Peixes: Pare de fantasiar com realidades paralelas, a vida real não tem trilha sonora da Disney nem fadas madrinhas para limpar a bagunça que você faz enquanto está 'sonhando acordado'.",
+            "♈ Áries: Marte está em fúria, e você também, o que não é nenhuma novidade para ninguém que te conhece há mais de cinco minutos. Canalize essa energia para algo útil, como sumir por um tempo.",
+            "♉ Touro: A estabilidade que você tanto preza na verdade chama-se preguiça acumulada e medo crônico de qualquer mudança. O sofá já tem o formato do seu corpo e isso deveria te assustar, não te confortar.",
+            "♊ Gêmeos: Mudar de opinião a cada cinco minutos é exaustivo para o público e patético para quem te observa. Ter opinião própria exige caráter, coisa que suas múltiplas faces ainda estão tentando localizar.",
+            "♋ Câncer: Guardar mágoa de um comentário feito em 1998 não vai te trazer o Oscar de maior sofredor do zodíaco. O passado já seguiu em frente, por que você continua enviando cartas para ele?",
+            "♌ Leão: Sua autoestima é invejável em um mundo de inseguranças, pena que a realidade física e os fatos não concordam com 90% das coisas que você acredita sobre si mesmo. Acorde da alucinação.",
+            "♍ Virgem: Analisar cada molécula de um problema é o jeito mais rápido e eficiente de não fazer absolutamente nada a respeito dele. A perfeição é o seu esconderijo favorito para a procrastinação.",
+            "♎ Libra: A justiça tarda e, no seu caso, ela parece que se aposentou por invalidez de tanto esperar você se decidir entre o azul e o azul-bebê. O universo não tem todo esse tempo para as suas dúvidas.",
+            "♏ Escorpião: Desconfiar da própria sombra é exaustivo e beira o ridículo. Relaxe o ferrão e perceba que as pessoas não estão tramando contra você; elas estão apenas ocupadas demais vivendo as próprias vidas.",
+            "♐ Sagitário: Liberdade é um conceito lindo, mas ter um endereço fixo e um CPF regularizado ajuda muito na hora de receber o Pix. O desapego não paga as contas da sua próxima 'grande aventura' furada.",
+            "♑ Capricórnio: O topo da montanha é solitário e frio, leve um casaco reforçado e um lanche, pois ninguém vai subir lá para te fazer companhia ou admirar sua coleção de metas batidas e alma seca.",
+            "♒ Aquário: Você vive dizendo que é o futuro da humanidade, mas o presente está batendo na sua porta pedindo o aluguel atrasado. Menos naves espaciais na cabeça e mais boletos quitados na mão.",
+            "♓ Peixes: Seus sonhos são lindos e profundos, pena que o despertador da vida real existe e ele toca alto. Saia do fundo do mar antes que você esqueça como se respira oxigênio e lógica.",
+            "♈ Áries: Bater a cabeça na parede repetidamente não é uma estratégia válida de superação de obstáculos, é apenas prova de que você não usa o que tem dentro do crânio para pensar.",
+            "♉ Touro: O conforto é sua religião pessoal e o sofá é o seu altar sagrado. O problema é que milagres raramente acontecem para quem se recusa a levantar o peso do próprio corpo para agir.",
+            "♊ Gêmeos: Comunicar-se bem não significa falar sem parar pelo cotovelo sobre assuntos que você não domina. Às vezes, o melhor sinal de inteligência que você pode dar é manter a boca fechada.",
+            "♋ Câncer: O passado ligou hoje cedo e pediu encarecidamente para você parar de ligar para ele de madrugada chorando. Aceite que o que foi, foi, e o que ficou é só essa sua cara de choro.",
+            "♌ Leão: Sua majestade, o reino está em ruínas e os súditos fugiram para evitar suas palestras sobre como você é incrível. Acorde para o fato de que ninguém é obrigado a ser sua plateia eterna.",
+            "♍ Virgem: Perfeccionismo é apenas o nome chique e socialmente aceitável que você deu para sua chatice crônica e incapacidade de aceitar que a vida é feita de borrões, não de linhas retas.",
+            "♎ Libra: A indecisão é sua marca registrada no cosmos, ou talvez não seja, você ainda está pensando se concorda com essa afirmação. Enquanto isso, a vida passa e você fica aí parado olhando o nada.",
+            "♏ Escorpião: Manipular os sentimentos alheios gasta uma energia que você poderia usar para algo produtivo, como uma terapia intensiva para tratar esse seu complexo de espião internacional mal-sucedido.",
+            "♐ Sagitário: Sua busca incessante pela verdade absoluta sempre termina convenientemente em um bar com Wi-Fi gratuito. Filosofia de botequim não vai te salvar do vazio existencial que você carrega na mochila.",
+            "♑ Capricórnio: Seriedade demais atrai rugas precoces e afasta qualquer possibilidade de diversão genuína. Tente sorrir uma vez por semana; os músculos da sua face ainda lembram como se faz isso, eu espero.",
+            "♒ Aquário: O universo é vasto e infinito, mas o seu bom senso parece ser microscópico e difícil de localizar em dias de crise. Ser excêntrico não te dá imunidade contra as leis básicas da convivência.",
+            "♓ Peixes: Mergulhar fundo demais nas próprias emoções pode te deixar sem fôlego e completamente sem rumo. O problema de viver nas nuvens é que o tombo, quando acontece, é sempre de uma altura considerável.",
+            "♈ Áries: A pressa é a inimiga da perfeição e, no seu caso, é sua única amiga fiel. Você corre tanto para chegar a lugar nenhum que acaba tropeçando na própria sombra e culpando o destino pelo tombo.",
+            "♉ Touro: Mudar de hábito é difícil, eu sei, mas o sofá já tem o formato exato das suas costas e isso é um sinal claro de que você está virando parte da mobília. Reaja enquanto ainda tem articulações funcionais.",
+            "♊ Gêmeos: Sua curiosidade vai acabar te metendo em uma confusão da qual nem suas duas línguas conseguirão te tirar. Nem tudo o que brilha é ouro, e nem toda fofoca merece sua atenção de 24 horas.",
+            "♋ Câncer: Acolher a todos é uma virtude, mas sua casa não é o abrigo municipal e seu coração não é um pronto-socorro espiritual para gente que só quer te sugar. Aprenda a dizer não antes de implodir.",
+            "♌ Leão: Aplausos imaginários e curtidas em fotos editadas não pagam a conta de luz nem preenchem o vazio de quem só vive de aparências. Saia do palco um pouco e descubra quem você é sem o figurino.",
+            "♍ Virgem: Criticar o sistema é o esporte favorito de quem não consegue nem lavar a própria louça sem reclamar do detergente. Menos julgamento sobre o macro e mais ação sobre o micro da sua vida bagunçada.",
+            "♎ Libra: A harmonia que você tanto prega por aí é, na verdade, apenas um medo paralisante de dar sua opinião e ser cancelado por alguém. A paz que custa a sua identidade é apenas uma guerra disfarçada.",
+            "♏ Escorpião: Sua intensidade emocional assusta até roteirista de filme de terror coreano. Nem tudo precisa ser uma questão de vida ou morte; às vezes, um café é só um café, não um pacto de sangue.",
+            "♐ Sagitário: Sinceridade demais sem empatia é apenas falta de educação astral de quem se acha superior. Falar a 'verdade' dói menos se você não usar um porrete para entregá-la para as pessoas.",
+            "♑ Capricórnio: O sucesso é um caminho longo, íngreme e cansativo, e você esqueceu de levar água, alegria e amigos. Chegar no topo e descobrir que esqueceu de viver no processo é o seu maior medo vindo à tona.",
+            "♒ Aquário: Rebelde sem causa, sem plano e agora sem Wi-Fi. Triste fim para quem se achava o ápice da evolução tecnológica humana. Sem uma rede social para brilhar, seu brilho é apenas um curto-circuito interno.",
+            "♓ Peixes: A intuição falhou miseravelmente hoje, admita. Aquela 'voz interior' que você ouviu era apenas a vontade acumulada de comer pizza e fugir das responsabilidades da vida adulta.",
+            "♈ Áries: Liderar o nada rumo ao lugar nenhum com a maior arrogância do mundo. Esse parece ser o seu plano de carreira para este semestre. Boa sorte para quem tiver a infelicidade de te seguir.",
+            "♉ Touro: O luxo que você acha que merece não cabe no saldo bancário que você efetivamente possui. A ostentação de hoje é o pedido de empréstimo de amanhã. Controle seu apetite por coisas caras.",
+            "♊ Gêmeos: Falar é prata, calar é ouro. Se seguir esse conselho, você poderá ficar milionário em silêncio hoje mesmo. O mundo precisa de menos comentários seus e de mais ações concretas.",
+            "♋ Câncer: A lua mudou de fase e seu humor acompanhou a mudança com um drama desnecessário. Ninguém mais tem paciência para esse seu sobe e desce emocional que parece uma montanha-russa quebrada.",
+            "♌ Leão: O palco é todo seu hoje, mas a plateia aproveitou o intervalo para fugir pelos fundos e evitar o seu monólogo infinito sobre como você é a última bolacha do pacote cósmico.",
+            "♍ Virgem: Detalhes são importantes, mas você está exagerando tanto no zoom que perdeu o sentido do quadro inteiro. A vida está acontecendo lá fora enquanto você limpa o pó da moldura.",
+            "♎ Libra: Pesar os dois lados da balança eternamente não resolve o seu problema de peso na consciência. Tome uma decisão, mesmo que errada, apenas para provar que você ainda está vivo.",
+            "♏ Escorpião: O mistério que você faz sobre sua vida é, na verdade, apenas uma tática para esconder que você não tem assunto nenhum e que sua rotina é tão emocionante quanto ver a tinta secar na parede.",
+            "♐ Sagitário: A aventura está te chamando com voz alta, mas o seu joelho e a sua conta bancária estão gritando um 'não' bem sonoro. Aceite que sua fase de explorador indomável agora inclui pausas para o remédio da coluna.",
+            "♑ Capricórnio: Disciplina é uma excelente ferramenta, mas se transformar em um robô sem alma é um exagero que nem os seus chefes aguentam mais. Tente inserir um pouco de humanidade na sua planilha de hoje.",
+            "♒ Aquário: Inovar o óbvio e vender como se fosse uma revolução tecnológica não te faz um gênio da raça. Você é apenas um mestre em dar nomes complicados para coisas simples que todo mundo já conhece.",
+            "♓ Peixes: Escapar da realidade é o seu esporte favorito e você merece a medalha de ouro por isso. O problema é que a realidade é o único lugar onde você consegue realmente comer e dormir.",
+            "♈ Áries: Força bruta não substitui inteligência estratégica, tente usar a segunda opção pelo menos uma vez nesta década para ver se os resultados param de ser desastrosos.",
+            "♉ Touro: Persistência ou teimosia cega? O espelho sabe a resposta amarga, mas você prefere ignorar o reflexo e continuar batendo o pé no mesmo erro de sempre com a mesma cara de satisfação.",
+            "♊ Gêmeos: Adaptar-se a todas as situações é uma habilidade útil, mas você já mudou tanto de forma que perdeu sua identidade original e agora nem você sabe quem é o dono desse corpo.",
+            "♋ Câncer: Sentir tudo intensamente, o tempo todo, sem filtro, é um erro de programação grave que você se recusa a consertar. O mundo não é um velório eterno, tente sorrir sem motivo.",
+            "♌ Leão: O centro das atenções é um lugar muito apertado para comportar o seu ego gigante e o resto da humanidade ao mesmo tempo. Alguém vai acabar caindo, e provavelmente não será o seu ego.",
+            "♍ Virgem: Criticar é a sua única e verdadeira linguagem de amor, o problema é que ninguém se sente amado sendo bombardeado por uma lista de defeitos logo no café da manhã.",
+            "♎ Libra: A paz mundial começa por você parando de reclamar de cada pequena imperfeição que encontra pelo caminho. Se você quer harmonia, comece por parar de desafinar o coro dos outros.",
+            "♏ Escorpião: Controlar o universo inteiro é um projeto ambicioso demais para alguém que não consegue controlar nem a própria vontade de stalkear o ex em plena tarde de terça-feira.",
+            "♐ Sagitário: A piada que você contou foi realmente boa e todo mundo riu, pena que a sua vida continua sendo o alvo principal da piada maior que o destino está contando agora.",
+            "♑ Capricórnio: Escalar a hierarquia social sem levar sua alma junto é o seu destino atual. Aproveite o sucesso solitário cercado por pessoas que você despreza e que sentem o mesmo por você.",
+            "♒ Aquário: O desapego emocional que você ostenta como uma medalha de honra é, na verdade, apenas um medo infantil de sentir algo real e não conseguir controlar a situação com uma frase de efeito.",
+            "♓ Peixes: Confundir intuição espiritual com paranoia pura e simples é o seu dom especial. Nem todo mundo está te olhando, nem tudo é um sinal divino, às vezes é só você sendo você.",
+            "♈ Áries: O guerreiro dentro de você está cansado, provavelmente de tanta birra inútil e batalhas perdidas por falta de planejamento básico. Descanse o escudo e tente usar o cérebro um pouco.",
+            "♉ Touro: A posse de objetos materiais não traz a felicidade plena, mas você não larga esse controle remoto e essa conta bancária por nada nesse mundo. O apego é a sua verdadeira prisão.",
+            "♊ Gêmeos: Sua mente é um labirinto complexo onde até o próprio Minotauro se perdeu de tédio. Tente simplificar seus pensamentos antes que você sofra um curto-circuito de tanta indecisão acumulada.",
+            "♋ Câncer: Criar raízes profundas é bom para árvores, mas você está virando um vegetal de sofá que se recusa a ver a luz do sol para não ter que enfrentar a vida fora das cobertas.",
+            "♌ Leão: O brilho eterno de uma mente sem modéstia nenhuma. Você é o seu maior fã e o seu único espectador fiel, já que o resto do mundo cansou do seu show de egocentrismo há anos."
+        ],
+        despedida: [
+            "Vá em paz e não gaste em ideia genial de negócio.",
+            "Que a sorte te encontre antes do oficial de justiça.",
+            "Namastê... o que o bolso não sente, o cartão acusa.",
+            "Se ficar rico, compre um senso de humor. Se não, tenha números.",
+            "Fique com os deuses, o gerente do banco já desistiu de você.",
+            "Sorte no jogo, porque no resto tá difícil!",
+            "O Mestre volta ao descanso. Não acorde se não ganhar.",
+            "Até a próxima encarnação, onde espero que você nasça herdeiro.",
+            "A luz em mim saúda sua luz que está com a conta atrasada.",
+            "Vá e brilhe, mas o Serasa tem visão de águia.",
+            "Que o destino seja breve, pois sua paciência já acabou.",
+            "Até mais, e tente não cair no golpe do bilhete premiado.",
+            "Vá com fé, mas leve o comprovante de residência.",
+            "Namastê... e não esqueça de conferir o resultado!",
+            "Que os astros te guiem para fora desse buraco financeiro.",
+            "Até o próximo sorteio, se você ainda tiver dinheiro para jogar.",
+            "Vá em paz, mas saiba que a sorte te acha meio estranho.",
+            "Que o universo te dê o que você merece, e não o que você quer.",
+            "Namastê... e tente não gastar o prêmio com ex-namorado(a).",
+            "Até a próxima vida, nesta aqui já deu para você.",
+            "Vá com os anjos, mas eles estão cobrando taxa de escolta.",
+            "Que la fortuna sorria para você, mesmo que seja um sorriso irônico.",
+            "Namastê... e lembre-se: o azar é apenas a sorte tirando férias.",
+            "Até logo, e tente não perder este bilhete no caminho.",
+            "Vá e tente a sorte, o não você já tem, agora busque a humilhação.",
+            "Que o karma te esqueça por uns dias, você precisa de um tempo.",
+            "Namastê... e se ganhar, mude de nome imediatamente.",
+            "Até o próximo drama da sua vida financeira.",
+            "Vá em paz, e tente não ser o motivo da risada do gerente hoje.",
+            "Que os deuses te ajudem, porque eu já cansei de tentar.",
+            "Namastê... e lembre-se que o dinheiro some, mas o boleto é eterno.",
+            "Até mais, e não conte com o ovo antes da galinha nascer.",
+            "Vá com fé, mas se não ganhar, a culpa é do governo.",
+            "Que o destino te surpreenda, preferencialmente com dinheiro.",
+            "Namastê... e pare de gastar com o que você não precisa.",
+            "Até a próxima tentativa frustrada de enriquecimento ilícito.",
+            "Vá em paz, mas leve um guarda-chuva, vai chover cobrança.",
+            "Que a sorte te siga, mas ela parece estar meio cansada de você.",
+            "Namastê... e não esqueça de pagar o dízimo da sorte.",
+            "Até logo, e tente não se endividar mais nas próximas 24 horas.",
+            "Vá com os deuses, mas eles pediram para você não incomodar.",
+            "Que a fortuna te encontre escondido nesse seu cafofo.",
+            "Namastê... e se ficar rico, apague meu contato.",
+            "Até a próxima encarnação, talvez você nasça com sorte.",
+            "Vá em paz, e tente não ser o 'pau mandado' do seu banco.",
+            "Que os astros se alinhem, ou pelo menos parem de te sacanear.",
+            "Namastê... e lembre-se: rir é o melhor remédio para a pobreza.",
+            "Até mais, e tente não apostar o dinheiro do leite das crianças.",
+            "Vá com fé, mas saiba que a fé não paga juros de cartão.",
+            "Que o destino te dê um descanso, você está com cara de acabado.",
+            "Namastê... e tente não ser o protagonista do próximo 'Casos de Família'.",
+            "Até logo, e que o azar passe longe da sua porta (difícil).",
+            "Vá em paz, e se ganhar, compre um pouco de dignidade.",
+            "Que a sorte te veja, apesar de você estar sempre no escuro.",
+            "Namastê... e não gaste o prêmio com quem não te deu valor.",
+            "Até a próxima, e tente não reclamar tanto da vida hoje.",
+            "Vá com os anjos, eles são os únicos que ainda te aguentam.",
+            "Que a fortuna te dê um beijo, mas cuidado para não ser o da morte.",
+            "Namastê... e lembre-se que o Guru sempre tem razão.",
+            "Até mais, e tente não ser o assunto da fofoca do condomínio.",
+            "Vá em paz, e que o oficial de justiça erre o seu endereço.",
+            "Que os deuses te protejam de você mesmo e das suas ideias.",
+            "Namastê... e se ganhar, não esqueça de me mandar um presente.",
+            "Até logo, e tente não chorar no banho por causa de dinheiro.",
+            "Vá com fé, mas saiba que a sorte é uma amante infiel.",
+            "Que o destino te dê uma trégua, sua vida parece um filme de terror.",
+            "Namastê... e pare de acreditar em tudo o que vê na internet.",
+            "Até a próxima, e que os números sejam menos cruéis com você.",
+            "Vá em paz, e tente não se perder no caminho da lotérica.",
+            "Que a sorte te abrace, mas cuidado para não ser um abraço de urso.",
+            "Namastê... e lembre-se: o silêncio vale ouro, mas o ouro vale mais.",
+            "Até mais, e tente não ser a vergonha da sua constelação hoje.",
+            "Vá com os deuses, e peça para eles limparem o seu nome.",
+            "Que a fortuna te encontre, mas ela está sem GPS no momento.",
+            "Namastê... e se ficar rico, não venha me pedir mais conselhos.",
+            "Até logo, e tente não gastar tudo em coxinha e guaraná.",
+            "Vá em paz, e que sua aura pare de brilhar em tom de 'pobreza'.",
+            "Que o destino te ajude, porque a matemática está contra você.",
+            "Namastê... e lembre-se que a esperança é a última que morre (tadinha).",
+            "Até a próxima, e tente não ser o motivo do meu próximo post.",
+            "Vá com fé, mas saiba que a sorte não aceita desculpas.",
+            "Que a fortuna te dê um 'oi', mas não espere um relacionamento sério.",
+            "Namastê... e tente não se iludir com esses números (mentira, se iluda sim).",
+            "Até mais, e que o universo pare de te usar como exemplo de 'o que não fazer'.",
+            "Vá em paz, e tente não ser a primeira pessoa a falir depois de ganhar.",
+            "Que os deuses te ouçam, mas eles estão com o volume no mudo.",
+            "Namastê... e se ganhar, compre um pouco de bom gosto.",
+            "Até logo, e que os números tragam a paz que o seu banco tirou.",
+            "Vá com fé, mas leve o RG, você vai precisar para retirar o prêmio.",
+            "Que a sorte te encontre antes que a sua paciência acabe de vez.",
+            "Namastê... e não esqueça que a vida é curta, mas o débito é longo.",
+            "Até a próxima encarnação, quem sabe você nasce com juízo.",
+            "Vá em paz, e tente não gastar o prêmio com esquema de pirâmide.",
+            "Que o destino te dê uma chance, você já teve azar demais por hoje.",
+            "Namastê... e lembre-se: rir de si mesmo é grátis, o resto custa caro.",
+            "Até mais, e que la fortuna te veja como você vê o buffet livre.",
+            "Vá com os anjos, mas eles pediram para você pagar o pedágio.",
+            "Que a sorte te dê um sinal, tipo um letreiro em neon gigante.",
+            "Namastê... e se ganhar, não esqueça que eu existo (brincadeira, esqueça sim).",
+            "Até logo, e que o karma te dê um desconto na fatura deste mês.",
+            "Vá em paz, e tente não ser o próximo vídeo viral de 'como perder tudo'."
+        ],
+        fundo: ["em uma Cobertura de Luxo", "no Ganges Digital", "em um Office na Faria Lima", "nos Himalaias Tech", "em um Templo de Ouro", "num Bunker de Luxo", "no Metaverso Sagrado", "no Topo do Everest", "em um Casino em Macau", "numa Nave Espacial", "numa Ilha Fiscal", "num Jato Particular", "num Iate em Dubai", "num Palácio na Índia", "num Mosteiro Zen", "numa Vila na Toscana", "num Loft em Nova York", "num Penthouse em Tóquio", "num Resort nas Maldivas", "num Ashram Futurista"],
+        corpo: ["vestindo Terno Slim-Fit", "usando Túnica Sagrada", "com Moletom de R$ 5k", "de Jaqueta Techwear", "em Trajes de Linho", "de Blazer Riscado", "com Capa de Invisibilidade", "de Pijama de Cetim", "com Robe de Veludo", "usando Kimono de Seda", "de Smoking Italiano", "com Poncho Andino", "de Kilt Escocês", "com Sarongue de Bali", "usando Toga Romana", "de Sobretudo de Couro", "com Colete de Safari", "de Agasalho Vintage", "usando Batina de Luxo", "de Armadura de Ouro"],
+        detalhe: ["com Óculos Aviador", "usando AirPods Pro", "com Notebook Dourado", "segurando Chá Sagrado", "com Anel de Caveira", "com Óculos Escuros à noite", "segurando um iPhone de Ouro", "com um Charuto Cósmico", "usando um Turbante Neon", "com um Gato Persa no colo", "ouvindo Lo-fi de Mantra", "com um Cajado de Cristal", "segurando um Terço de Diamante", "com um Relógio de R$ 1 Milhão", "usando um Fone Gamer RGB", "com um Cachorro Shiba Inu", "segurando uma Taça de Cristal", "com um Livro de Alquimia", "usando um Monóculo de Ouro", "com um Holograma de Shiva"]
+    };
+
+    function gerarNomeEVisual() {
+        const b = vocab.base[Math.floor(Math.random()*vocab.base.length)];
+        const n = vocab.nome[Math.floor(Math.random()*vocab.nome.length)];
+        const s = vocab.sobrenome[Math.floor(Math.random()*vocab.sobrenome.length)];
+        nomeGuruAtual = `${b} ${n} ${s}`;
+        
+        const f = vocab.fundo[Math.floor(Math.random()*vocab.fundo.length)];
+        const c = vocab.corpo[Math.floor(Math.random()*vocab.corpo.length)];
+        const d = vocab.detalhe[Math.floor(Math.random()*vocab.detalhe.length)];
+        descVisual = `${f}, ${c} e ${d}`;
+
+        document.getElementById('nomeGuruHeader').innerText = nomeGuruAtual;
+        document.getElementById('visualDesc').innerText = descVisual;
+    }
+
+    function executarSorteio() {
+        const display = document.getElementById('display');
+        const preview = document.getElementById('previewContainer');
+        let qtd = parseInt(document.getElementById('qtd').value);
+        
+        if (isNaN(qtd) || qtd <= 0) {
+            alert("O Guru exige uma quantidade numérica válida!");
+            return;
+        }
+
+        display.innerHTML = '';
+        preview.style.display = 'none';
+        numerosAtuais = [];
+        gerarNomeEVisual();
+
+        for (let i = 0; i < qtd; i++) {
+            setTimeout(() => {
+                const num = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+                numerosAtuais.push(num);
+                let esfera = document.createElement('div');
+                esfera.className = 'number-sphere';
+                esfera.innerText = num;
+                display.appendChild(esfera);
+                if(i === qtd - 1) finalizar();
+            }, i * 35);
+        }
+    }
+
+    function finalizar() {
+        const ab = vocab.abertura[Math.floor(Math.random()*vocab.abertura.length)];
+        const pr = vocab.problema[Math.floor(Math.random()*vocab.problema.length)];
+        const co = vocab.conselho[Math.floor(Math.random()*vocab.conselho.length)];
+        const ho = vocab.horoscopo[Math.floor(Math.random()*vocab.horoscopo.length)];
+        const de = vocab.despedida[Math.floor(Math.random()*vocab.despedida.length)];
+
+        const numsFormatados = numerosAtuais.map(n => n + " \u200B").join(' - ');
+        
+        const texto = `🕉️ *ORÁCULO DE ${nomeGuruAtual.toUpperCase()}* 🕉️\n\n👳 *ESTADO DO MESTRE:* \n${descVisual}\n\n📜 *MENSAGEM:* \n"${nomeGuruAtual} ${ab} ${pr} ${co}"\n\n⭐ *HORÓSCOPO DO DIA:* \n"${ho}"\n\n🍀 *NÚMEROS DA SORTE:* 🍀\n➡ [ ${numsFormatados} ]\n\n🪄 *CONSELHO DO MESTRE:* _${de}_`;
+
+        document.getElementById('previewContainer').style.display = 'block';
+        document.getElementById('previewText').innerText = texto;
+
+        navigator.clipboard.writeText(texto).then(() => {
+            const t = document.getElementById('toast');
+            t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 3000);
+        });
+    }
+
+    window.onload = gerarNomeEVisual;
+</script>
+</body>
+</html>
