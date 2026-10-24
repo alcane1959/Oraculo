@@ -12,7 +12,7 @@
         .header-section { width: 100%; background: var(--bg); padding: 40px 20px; text-align: center; border-bottom: 3px solid var(--gold); }
         .titulo-master { font-family: 'Cinzel', serif; font-size: 1.8rem; background: linear-gradient(180deg, #fff 30%, #a1a1a1 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; }
         .control-panel { margin-top: -30px; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 15px 45px rgba(0,0,0,0.15); width: 95%; max-width: 550px; display: flex; flex-direction: column; gap: 15px; border: 1px solid #eee; text-align: center; }
-        input { padding: 15px; border: 2px solid #f0f0f0; border-radius: 5px; text-align: center; font-size: 1.2rem; outline: none; }
+        input, select { padding: 15px; border: 2px solid #f0f0f0; border-radius: 5px; text-align: center; font-size: 1.2rem; outline: none; }
         .btn-gerar { padding: 18px; font-family: 'Cinzel', serif; font-weight: 700; text-transform: uppercase; cursor: pointer; transition: 0.3s; border: 2px solid var(--gold); background: var(--bg); color: var(--gold); }
         .btn-gerar:hover { background: var(--gold); color: #000; }
         .results-grid { width: 90%; max-width: 800px; margin: 25px 0; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
@@ -32,6 +32,11 @@
 <div class="control-panel">
     <label style="font-size: 0.7rem; font-weight: 700; color: #999;">QUANTAS DEZENAS PARA O SEU DESTINO?</label>
     <input type="number" id="qtd" placeholder="Ex: 6" min="1" max="100">
+    <label for="signo" style="font-size: 0.7rem; font-weight: 700; color: #999;">QUAL É O SEU SIGNO?</label>
+    <select id="signo" required>
+        <option value="">Selecione o signo</option>
+        <option value="Áries">♈ Áries</option><option value="Touro">♉ Touro</option><option value="Gêmeos">♊ Gêmeos</option><option value="Câncer">♋ Câncer</option><option value="Leão">♌ Leão</option><option value="Virgem">♍ Virgem</option><option value="Libra">♎ Libra</option><option value="Escorpião">♏ Escorpião</option><option value="Sagitário">♐ Sagitário</option><option value="Capricórnio">♑ Capricórnio</option><option value="Aquário">♒ Aquário</option><option value="Peixes">♓ Peixes</option>
+    </select>
     <button class="btn-gerar" onclick="executarSorteio()">Invocar 100 Milhões de Profecias</button>
 </div>
 
@@ -567,6 +572,27 @@
             "Até logo, e que o karma te dê um desconto na fatura deste mês.",
             "Vá em paz, e tente não ser o próximo vídeo viral de 'como perder tudo'."
         ],
+        sarcasmoSignos: {
+            "Áries": ["Seu talento para transformar qualquer conversa em competição continua intacto. Pena que ninguém sabia que estava competindo."],
+            "Touro": ["Sua zona de conforto já possui CEP, escritura e marca permanente no sofá."],
+            "Gêmeos": ["Suas duas versões criaram um grupo separado para falar mal uma da outra."],
+            "Câncer": ["Você guardou uma mágoa com tanto carinho que já pode declará-la como dependente."],
+            "Leão": ["O universo preparou um palco só para você. É a fila da padaria, mas tente não pedir aplausos."],
+            "Virgem": ["Você encontrará dezessete defeitos em algo que funcionava antes da sua ajuda."],
+            "Libra": ["Você finalmente tomará uma decisão: adiar a decisão para analisar melhor."],
+            "Escorpião": ["Seu olhar misterioso disfarça bem que você esqueceu o que ia dizer."],
+            "Sagitário": ["A vontade de fugir surgirá novamente. O boleto, porém, conhece seu endereço."],
+            "Capricórnio": ["Você trabalhará para descansar no futuro, aquele lugar mitológico fora da agenda."],
+            "Aquário": ["Sua ideia é tão avançada que ainda não descobriram para que serve."],
+            "Peixes": ["Sua intuição mandou um sinal. Era a fatura, mas você preferiu chamar de mensagem espiritual."]
+        },
+        corSorte: ["dourado de boleto vencido", "verde de Pix pendente", "azul de tela travada", "vermelho de limite estourado", "roxo de olheira mística", "cinza de segunda-feira", "preto de café sem açúcar"],
+        objetoSorte: ["um comprovante de Pix", "uma moeda esquecida no sofá", "um carregador que funciona", "um boleto misteriosamente pago", "uma meia sem par", "uma caneta da lotérica"],
+        animalTotem: ["capivara contemplativa", "gato julgador", "urubu empreendedor", "pombo estrategista", "preguiça produtiva", "hamster endividado"],
+        alertaCosmico: ["Não tome decisões financeiras antes do café.", "Evite quem começa a frase com 'oportunidade única'.", "Seu impulso de comprar inutilidades estará em alta: esconda o cartão.", "Mercúrio não está retrógrado; você apenas esqueceu a senha.", "Não confunda intuição com propaganda personalizada."],
+        missaoDia: ["organizar uma gaveta e fingir que reorganizou a vida", "beber água antes de dar conselho", "responder uma mensagem sem usar áudio", "terminar algo que começou nesta década", "lavar a louça antes que ela desenvolva consciência"],
+        previsaoFinanceira: ["entrada de dinheiro detectada; pode ser apenas estorno", "a prosperidade se aproxima, olha sua conta e atravessa a rua", "um desconto aparecerá depois que você pagar o preço cheio", "o dinheiro circulará bastante, principalmente para longe de você", "o banco demonstrará carinho enviando uma cobrança"],
+        diagnosticoDigital: ["chakra do Wi-Fi oscilando", "aura em modo avião", "karma com 37 abas abertas", "energia vital em 3% e sem carregador", "terceiro olho pedindo atualização"],
         fundo: ["em uma Cobertura de Luxo", "no Ganges Digital", "em um Office na Faria Lima", "nos Himalaias Tech", "em um Templo de Ouro", "num Bunker de Luxo", "no Metaverso Sagrado", "no Topo do Everest", "em um Casino em Macau", "numa Nave Espacial", "numa Ilha Fiscal", "num Jato Particular", "num Iate em Dubai", "num Palácio na Índia", "num Mosteiro Zen", "numa Vila na Toscana", "num Loft em Nova York", "num Penthouse em Tóquio", "num Resort nas Maldivas", "num Ashram Futurista"],
         corpo: ["vestindo Terno Slim-Fit", "usando Túnica Sagrada", "com Moletom de R$ 5k", "de Jaqueta Techwear", "em Trajes de Linho", "de Blazer Riscado", "com Capa de Invisibilidade", "de Pijama de Cetim", "com Robe de Veludo", "usando Kimono de Seda", "de Smoking Italiano", "com Poncho Andino", "de Kilt Escocês", "com Sarongue de Bali", "usando Toga Romana", "de Sobretudo de Couro", "com Colete de Safari", "de Agasalho Vintage", "usando Batina de Luxo", "de Armadura de Ouro"],
         detalhe: ["com Óculos Aviador", "usando AirPods Pro", "com Notebook Dourado", "segurando Chá Sagrado", "com Anel de Caveira", "com Óculos Escuros à noite", "segurando um iPhone de Ouro", "com um Charuto Cósmico", "usando um Turbante Neon", "com um Gato Persa no colo", "ouvindo Lo-fi de Mantra", "com um Cajado de Cristal", "segurando um Terço de Diamante", "com um Relógio de R$ 1 Milhão", "usando um Fone Gamer RGB", "com um Cachorro Shiba Inu", "segurando uma Taça de Cristal", "com um Livro de Alquimia", "usando um Monóculo de Ouro", "com um Holograma de Shiva"]
@@ -591,11 +617,9 @@
         const display = document.getElementById('display');
         const preview = document.getElementById('previewContainer');
         let qtd = parseInt(document.getElementById('qtd').value);
-        
-        if (isNaN(qtd) || qtd <= 0) {
-            alert("O Guru exige uma quantidade numérica válida!");
-            return;
-        }
+        const signo = document.getElementById('signo').value;
+        if (isNaN(qtd) || qtd <= 0 || qtd > 100) { alert("O Guru exige uma quantidade entre 1 e 100!"); return; }
+        if (!signo) { alert("O Guru exige que você selecione o seu signo!"); return; }
 
         display.innerHTML = '';
         preview.style.display = 'none';
@@ -619,13 +643,50 @@
         const ab = vocab.abertura[Math.floor(Math.random()*vocab.abertura.length)];
         const pr = vocab.problema[Math.floor(Math.random()*vocab.problema.length)];
         const co = vocab.conselho[Math.floor(Math.random()*vocab.conselho.length)];
-        const ho = vocab.horoscopo[Math.floor(Math.random()*vocab.horoscopo.length)];
+        const signo = document.getElementById('signo').value;
+        const opcoesDoSigno = vocab.horoscopo.filter(item => item.includes(`${signo}:`));
+        const horoscopoBase = opcoesDoSigno[Math.floor(Math.random() * opcoesDoSigno.length)];
+        const complementoSarcastico = vocab.sarcasmoSignos[signo][Math.floor(Math.random() * vocab.sarcasmoSignos[signo].length)];
+        const ho = `${horoscopoBase}\n\n🔥 VEREDITO DO GURU:\n${complementoSarcastico}`;
         const de = vocab.despedida[Math.floor(Math.random()*vocab.despedida.length)];
-
+        const sortear = lista => lista[Math.floor(Math.random() * lista.length)];
+        const energia = Math.floor(Math.random() * 101), paciencia = Math.floor(Math.random() * 101), chancePix = Math.floor(Math.random() * 11);
         const numsFormatados = numerosAtuais.map(n => n + " \u200B").join(' - ');
-        
-        const texto = `🕉️ *ORÁCULO DE ${nomeGuruAtual.toUpperCase()}* 🕉️\n\n👳 *ESTADO DO MESTRE:* \n${descVisual}\n\n📜 *MENSAGEM:* \n"${nomeGuruAtual} ${ab} ${pr} ${co}"\n\n⭐ *HORÓSCOPO DO DIA:* \n"${ho}"\n\n🍀 *NÚMEROS DA SORTE:* 🍀\n➡ [ ${numsFormatados} ]\n\n🪄 *CONSELHO DO MESTRE:* _${de}_`;
+        const texto = `🕉️ *ORÁCULO DE ${nomeGuruAtual.toUpperCase()}* 🕉️
 
+👳 *ESTADO DO MESTRE:*
+${descVisual}
+
+📜 *MENSAGEM:*
+"${nomeGuruAtual} ${ab} ${pr} ${co}"
+
+⭐ *HORÓSCOPO ESCOLHIDO:*
+"${ho}"
+
+🔮 *DIAGNÓSTICO CÓSMICO:*
+• Energia espiritual: ${energia}% — ${energia > 70 ? 'perigosamente confiante' : energia > 35 ? 'funcionando no modo econômico' : 'favor recarregar na tomada'}
+• Paciência disponível: ${paciencia}%
+• Chance de Pix inesperado: ${chancePix}%
+• Estado digital: ${sortear(vocab.diagnosticoDigital)}
+
+💸 *PREVISÃO FINANCEIRA:*
+${sortear(vocab.previsaoFinanceira)}
+
+🎨 *COR DA SORTE:* ${sortear(vocab.corSorte)}
+🧿 *OBJETO DE PODER:* ${sortear(vocab.objetoSorte)}
+🐾 *ANIMAL-TOTEM:* ${sortear(vocab.animalTotem)}
+
+🎯 *MISSÃO DO DIA:*
+${sortear(vocab.missaoDia)}
+
+⚠️ *ALERTA CÓSMICO:*
+${sortear(vocab.alertaCosmico)}
+
+🍀 *NÚMEROS DA SORTE:* 🍀
+➡ [ ${numsFormatados} ]
+
+🪄 *CONSELHO FINAL DO MESTRE:*
+_${de}_`;
         document.getElementById('previewContainer').style.display = 'block';
         document.getElementById('previewText').innerText = texto;
 
